@@ -92,6 +92,7 @@ print("autotrade start")
 # 시작 메세지 슬랙 전송
 post_message("autotrade start")
 
+check_running = True
 day_start = True
 krw_day_start = 0.0
 krw_day_end = 0.0
@@ -102,13 +103,16 @@ while True:
         start_time = get_start_time(g_krw_coin_name) # 9:00 AM
         end_time = start_time + datetime.timedelta(days=1) # 9:00 AM + 1day
 
-        if ((now.minute==5 or now.minute==35) and now.second < 2):
+        if ((now.minute==5 or now.minute==35) and check_running == True):
             post_message("=== Checking if algorithm is running!! ===")
             post_message_time()
             post_message_balance()
-            time.sleep(2)
+            check_running = False
+    
+        if((now.minute==6 or now.minute==36) and check_running == False):
+            check_running = True
 
-        if start_time < now < end_time - datetime.timedelta(seconds=10):
+        if start_time < now < end_time - datetime.timedelta(seconds=50):
             if(day_start == True):
                 krw_day_start = get_balance("KRW")
                 post_message("=== Day start!! === ")
