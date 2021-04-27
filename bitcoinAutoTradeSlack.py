@@ -6,6 +6,7 @@ import requests
 access = ""
 secret = ""
 myToken = ""
+
 myChannel = "#crypto"
 g_coin_name = "XRP"
 g_krw_coin_name = "KRW-"+g_coin_name
@@ -75,17 +76,12 @@ upbit = pyupbit.Upbit(access, secret)
 print("autotrade start")
 # 시작 메세지 슬랙 전송
 post_message("autotrade start")
-while True:
-    now = datetime.datetime.now()
-    if (now.minute == 26 and now.second < 5):
-        post_message("KRW balance: " + str(get_balance("KRW")))
-        post_message(g_coin_name + " balance:  " + str(get_balance(g_coin_name)))
-    time.sleep(1)
 
 day_start = True
 krw_day_start = 0.0
 krw_day_end = 0.0
-while False:
+
+while True:
     try:
         now = datetime.datetime.now()
         start_time = get_start_time(g_krw_coin_name) # 9:00 AM
