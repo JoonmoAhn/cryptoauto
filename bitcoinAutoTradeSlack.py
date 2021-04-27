@@ -77,6 +77,15 @@ def post_message_balance():
     post_message("KRW balance: " + str(krw_bal))
     post_message(g_coin_name + " balance:  " + str(btc_bal) + " = " + str(btc_bal * btc_price) + " KRW")
 
+def post_message_time():
+    year = datetime.datetime.now().year
+    month = datetime.datetime.now().month
+    day = datetime.datetime.now().day 
+    hour = datetime.datetime.now().hour
+    minute = datetime.datetime.now().minute
+    second = datetime.datetime.now().second
+    post_message('[%d/%d/%d  %dh%dm%ds]'%(year, month, day, hour, minute, second))
+
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 print("autotrade start")
@@ -95,6 +104,7 @@ while True:
 
         if ((now.minute==5 or now.minute==35) and now.second < 2):
             post_message("=== Checking if algorithm is running!! ===")
+            post_message_time()
             post_message_balance()
             time.sleep(2)
 
@@ -102,6 +112,7 @@ while True:
             if(day_start == True):
                 krw_day_start = get_balance("KRW")
                 post_message("=== Day start!! === ")
+                post_message_time()
                 post_message_balance()
                 post_message("Current price: " + str(get_current_price(g_krw_coin_name))
                              + ", Target price: " + str(get_target_price(g_krw_coin_name, g_k_range)))
@@ -112,6 +123,7 @@ while True:
                 if krw > 5000:
                     buy_result = upbit.buy_market_order(g_krw_coin_name, krw*(1-g_fee))
                     post_message("=== " + g_coin_name + " buy!!! ===")
+                    post_message_time()
                     post_message_balance()
 
         else:           
@@ -119,11 +131,13 @@ while True:
             if btc * get_current_price(g_krw_coin_name) > 1000 :
                 sell_result = upbit.sell_market_order(g_krw_coin_name, btc*(1-g_fee))
                 post_message("=== " + g_coin_name + " sell!!! ===")
+                post_message_time()
                 post_message_balance()
             
             if(day_start == False):
                 krw_day_end = get_balance("KRW")
                 post_message("=== Day end!! === ")
+                post_message_time()
                 post_message_balance()
                 post_message("KRW day start: " + str(krw_day_start)
                              + ", KRW day end: " + str(krw_day_end)
