@@ -73,9 +73,9 @@ def k_range_strategy_ma15(krw_coin, k):
 def post_message_balance():
     krw_bal = get_balance("KRW")
     btc_bal = get_balance(g_coin_name)
-    btc_price = get_current_price(g_coin_name)
+    btc_price = get_current_price(g_krw_coin_name)
     post_message("KRW balance: " + str(krw_bal))
-    post_message(g_coin_name + " balance:  " + str(btc_bal) + " = " + str(btc_bal * btc_price ) + " KRW")
+    post_message(g_coin_name + " balance:  " + str(btc_bal) + " = " + str(btc_bal * btc_price) + " KRW")
 
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
