@@ -86,6 +86,12 @@ def post_message_time():
     second = datetime.datetime.now().second
     post_message('[%d/%d/%d  %dh%dm%ds]'%(year, month, day, hour, minute, second))
 
+def post_message_default_info():
+    post_message_time()
+    post_message_balance()
+    post_message("Current price: " + str(get_current_price(g_krw_coin_name))
+                    + ", Target price: " + str(get_target_price(g_krw_coin_name, g_k_range)))
+
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 print("autotrade start")
@@ -103,46 +109,38 @@ while True:
         start_time = get_start_time(g_krw_coin_name) # 9:00 AM
         end_time = start_time + datetime.timedelta(days=1) # 9:00 AM + 1day
 
-        if ((now.minute==5 or now.minute==35) and check_running == True):
+        if (now.minute==35 and check_running == True):
             post_message("=== Checking if algorithm is running!! ===")
-            post_message_time()
-            post_message_balance()
+            post_message_default_info()
             check_running = False
     
-        if((now.minute==6 or now.minute==36) and check_running == False):
+        if(now.minute==36 and check_running == False):
             check_running = True
 
         if start_time < now < end_time - datetime.timedelta(seconds=50):
             if(day_start == True):
                 krw_day_start = get_balance("KRW")
                 post_message("=== Day start!! === ")
-                post_message_time()
-                post_message_balance()
-                post_message("Current price: " + str(get_current_price(g_krw_coin_name))
-                             + ", Target price: " + str(get_target_price(g_krw_coin_name, g_k_range)))
+                post_message_default_info()
                 day_start = False
 
             if k_range_strategy(g_krw_coin_name, g_k_range):
                 krw = get_balance("KRW")
                 if krw > 5000:
                     buy_result = upbit.buy_market_order(g_krw_coin_name, krw*(1-g_fee))
-                    post_message("=== " + g_coin_name + " buy!!! ===")
-                    post_message_time()
-                    post_message_balance()
+                    post_message_default_info()
 
         else:           
             btc = get_balance(g_coin_name)
             if btc * get_current_price(g_krw_coin_name) > 1000 :
                 sell_result = upbit.sell_market_order(g_krw_coin_name, btc*(1-g_fee))
                 post_message("=== " + g_coin_name + " sell!!! ===")
-                post_message_time()
-                post_message_balance()
+                post_message_default_info()
             
             if(day_start == False):
                 krw_day_end = get_balance("KRW")
                 post_message("=== Day end!! === ")
-                post_message_time()
-                post_message_balance()
+                post_message_default_info()
                 post_message("KRW day start: " + str(krw_day_start)
                              + ", KRW day end: " + str(krw_day_end)
                              + ", ROR: " + str((krw_day_end - krw_day_start)/krw_day_start * 100.0) +"%")
