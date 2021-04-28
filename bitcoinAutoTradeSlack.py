@@ -110,7 +110,7 @@ while True:
         end_time = start_time + datetime.timedelta(days=1) # 9:00 AM + 1day
 
         if (now.minute==35 and check_running == True):
-            post_message("=== Checking if algorithm is running!! ===")
+            post_message("=== Check running ===")
             post_message_default_info()
             check_running = False
     
@@ -120,7 +120,7 @@ while True:
         if start_time < now < end_time - datetime.timedelta(seconds=50):
             if(day_start == True):
                 krw_day_start = get_balance("KRW")
-                post_message("=== Day start!! === ")
+                post_message("=== Day start === ")
                 post_message_default_info()
                 day_start = False
 
@@ -128,18 +128,19 @@ while True:
                 krw = get_balance("KRW")
                 if krw > 5000:
                     buy_result = upbit.buy_market_order(g_krw_coin_name, krw*(1-g_fee))
+                    post_message("=== " + g_coin_name + " BUY !!! ===")
                     post_message_default_info()
 
         else:           
             btc = get_balance(g_coin_name)
             if btc * get_current_price(g_krw_coin_name) > 1000 :
                 sell_result = upbit.sell_market_order(g_krw_coin_name, btc*(1-g_fee))
-                post_message("=== " + g_coin_name + " sell!!! ===")
+                post_message("=== " + g_coin_name + " SELL !!! ===")
                 post_message_default_info()
             
             if(day_start == False):
                 krw_day_end = get_balance("KRW")
-                post_message("=== Day end!! === ")
+                post_message("=== Day end === ")
                 post_message_default_info()
                 post_message("KRW day start: " + str(krw_day_start)
                              + ", KRW day end: " + str(krw_day_end)
