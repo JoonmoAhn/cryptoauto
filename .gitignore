@@ -2,3 +2,4 @@
 *.xls
 *.xlsx
 *.vscode
+__pycache__

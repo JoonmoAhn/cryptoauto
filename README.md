@@ -8,6 +8,7 @@ sudo ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime
 ```
 sudo apt install python3-pip
 pip3 install pyupbit
+pip3 install matplotlib
 ```
 - set your access, secret key in bitcoinAutoTradeSlack.py
 
