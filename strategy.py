@@ -7,19 +7,18 @@ from account import Account
 import matplotlib.pyplot as plt
 
 class kRangeStrategy:
-    def __init__(self, account, coin):
-        self.acc_ = account
+    def __init__(self, coin, fee):
+        self.fee_ = fee
         self.coin_ = coin
         self.k_buy_ = 0.5
-        self.k_sell_ = 1.8
+        self.k_sell_ = 0.2
     
     def optimize_k_values(self, opt_days, ref_date, is_plot=False):
         df = pyupbit.get_ohlcv("KRW-"+self.coin_, interval="day", count=opt_days+1, to=ref_date)
-        fee = self.acc_.get_fee()
 
         # find ror (rate of revenue)
         k_buy_range = np.arange(0.1, 1.0, 0.1)
-        k_sell_range = np.arange(0.1, 3.0, 0.1) 
+        k_sell_range = np.arange(self.fee_, 0.5, 0.01) 
         k_buy_mesh, k_sell_mesh = np.meshgrid(k_buy_range, k_sell_range)
         ror_mesh = np.zeros_like(k_buy_mesh)
 
@@ -30,15 +29,12 @@ class kRangeStrategy:
             df['buy'] = df['open'] + (df['range']*k_buy).shift(1)
             mesh_row = 0
             for k_sell in k_sell_range:
-                if(k_sell <= k_buy+0.1):
-                    mesh_row += 1  
-                    continue
-                df['sell'] = df['open'] + (df['range']*k_sell).shift(1)    
+                df['sell'] = df['buy'] *(1.0 + k_sell)    
                 df['sell_actual'] = np.where(df['high'] >= df['sell'], df['sell'], df['close'])
                 # df['sell_actual'] = df['close']
  
                 df['ror'] = np.where(df['high'] >= df['buy'],
-                                    (df['sell_actual'] - (df['buy'] + df['sell_actual'])*fee) / df['buy'],
+                                    (df['sell_actual'] - (df['buy'] + df['sell_actual'])*self.fee_) / df['buy'],
                                     1)
 
                 ror = df['ror'].cumprod()[-2] # cumulate until 1-day before
@@ -52,7 +48,7 @@ class kRangeStrategy:
                 # print("(%.1f, %.1f) : %f"%(k_buy, k_sell, ror))
             mesh_col += 1
             # print("%.1f : %f"%(k_buy, ror))
-        print("%s, max ror : %.4f, k_buy : %.1f, k_sell : %.1f"%(self.coin_, ror_max, self.k_buy_, self.k_sell_))
+        print("%s, max ror : %.4f, k_buy : %.3f, k_sell : %.3f"%(self.coin_, ror_max, self.k_buy_, self.k_sell_))
 
         if(is_plot==True):
             plot = plt.axes(projection='3d')
@@ -67,26 +63,26 @@ class kRangeStrategy:
     def get_buy_price(self):
         # get buy price of kRangeStrategy
         df = pyupbit.get_ohlcv("KRW-"+self.coin_, interval="day", count=2)
+        time.sleep(0.1)
         buy_price = df.iloc[0]['close'] + (df.iloc[0]['high'] - df.iloc[0]['low']) * self.k_buy_
         return buy_price
 
     def get_sell_price(self):
         # get sell price of kRangeStrategy
-        df = pyupbit.get_ohlcv("KRW-"+self.coin_, interval="day", count=2)
-        sell_price = df.iloc[0]['close'] + (df.iloc[0]['high'] - df.iloc[0]['low']) * self.k_sell_
+        sell_price = self.get_buy_price() * (1.0+self.k_sell_)
         return sell_price
 
     def check_buy(self):
         buy_price = self.get_buy_price()
-        cur_price = self.acc_.get_current_price("KRW-"+self.coin_)
-        if(buy_price <= cur_price):
+        cur_price = pyupbit.get_orderbook(tickers="KRW-"+self.coin_)[0]["orderbook_units"][0]["ask_price"]
+        if(buy_price <= cur_price and cur_price <= buy_price*1.01):
             return True
         else:
             return False
 
     def check_sell(self):
         sell_price = self.get_sell_price()
-        cur_price = self.acc_.get_current_price("KRW-"+self.coin_)
+        cur_price = pyupbit.get_orderbook(tickers="KRW-"+self.coin_)[0]["orderbook_units"][0]["ask_price"]
         if(sell_price <= cur_price):
             return True
         else:
@@ -103,10 +99,8 @@ class kRangeStrategy:
 
 
 if __name__ == "__main__" :  
-    access = ""
-    secret = "" 
+    print(round(1.124124124,2))
+    
     fee = 0.0005
-    acc = Account(access, secret, fee)
-
-    strategy = kRangeStrategy(acc, "XRP")
+    strategy = kRangeStrategy("XRP", fee)
     strategy.optimize_k_values(opt_days = 200, ref_date = datetime.datetime.now()-datetime.timedelta(days=0))
